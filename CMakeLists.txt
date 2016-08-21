@@ -15,3 +15,4 @@ generate_arduino_firmware(${CMAKE_PROJECT_NAME})
 # Include custom libraries recursively
 link_directories(/home/maxik/projects/arduino/testing/libraries/)
 set(SimpleTimer_RECURSE True)
+set(SPI_RECURSE True)
