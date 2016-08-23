@@ -196,7 +196,7 @@ void resciveRFIDKey(byte *keys) {
     byte bytesBuffer[18];
     byte bufferSize = sizeof(bytesBuffer);
     byte blockAddr = 4;
-    byte status;
+    MFRC522::StatusCode status;
     int match = 0;
 
     if (!rFid.PICC_IsNewCardPresent() || !rFid.PICC_ReadCardSerial()) {
@@ -287,7 +287,7 @@ void writeNewRFIDKey(byte *keys) {
         Serial.print(F("PICC type: "));
     #endif
 
-    byte piccType = rFid.PICC_GetType(rFid.uid.sak);
+    MFRC522::PICC_Type piccType = rFid.PICC_GetType(rFid.uid.sak);
 
     #ifdef DEBUG_MODE
         Serial.println(rFid.PICC_GetTypeName(piccType));
@@ -308,7 +308,7 @@ void writeNewRFIDKey(byte *keys) {
     byte sector = 1;
     byte blockAddr = 4;
     byte trailerBlock = 7;
-    byte status;
+    MFRC522::StatusCode status;
     byte buffer[18];
     byte size = sizeof(buffer);
 
