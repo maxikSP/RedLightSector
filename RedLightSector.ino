@@ -257,11 +257,11 @@ void resciveRFIDKey(byte *keys) {
 
     if (match != sizeof(keys)) {
         #ifdef DEBUG_MODE
-            Serial.println(F("Invalid bytes key"));
+            Serial.println(F("Access denied"));
         #endif
     } else {
         #ifdef DEBUG_MODE
-            Serial.println(F("Success authorization"));
+            Serial.println(F("Access granted"));
         #endif
         openTheDore();
     }
