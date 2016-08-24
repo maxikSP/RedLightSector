@@ -8,7 +8,7 @@
 #include <MFRC522.h>
 
 #define SS_PIN 10
-#define RST_PIN 9
+#define RST_PIN 6
 
 // Debug mode. Comment it if debug don.t needed
 #define DEBUG_MODE;
@@ -41,8 +41,8 @@ char keymap[ROWS][COLS] = {
     { '*', '0', '#', 'D' }
 };
 
-byte rowPins[ROWS] = {6, 5, 4, 3};
-byte colPins[COLS] = {2, 1, 0};
+byte rowPins[ROWS] = {A0, A1, A2, A3};
+byte colPins[COLS] = {5, 4, 3, 2};
 byte defaultKeys[1][MFRC522::MF_KEY_SIZE] = {
     { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF }
 };
@@ -68,6 +68,15 @@ Keypad keypad = Keypad(makeKeymap(keymap), rowPins, colPins, sizeof(rowPins), si
  * Connection to GSM network
  */
 boolean connectToNetwork() {
+    pinMode(A0, OUTPUT);
+    pinMode(A1, OUTPUT);
+    pinMode(A2, OUTPUT);
+    pinMode(A3, OUTPUT);
+    pinMode(A4, OUTPUT);
+    pinMode(A5, OUTPUT);
+    pinMode(9, OUTPUT);
+
+    digitalWrite(9, HIGH);
     Serial.begin(9600);
 
     if (gsm.begin(9600)) {
@@ -105,8 +114,15 @@ byte findPhonePosition(char phone[20]) {
 /**
  * Opens the dore
  */
-void openTheDore() {
-    call.HangUp();
+void openTheDore(boolean calling = true) {
+    digitalWrite(9, LOW);
+    delay(500);
+    digitalWrite(9, HIGH);
+    delay(500);
+
+    if (calling) {
+        call.HangUp();
+    }
 };
 
 /**
@@ -145,15 +161,18 @@ void resciveCallDTMF(int pos) {
                 Serial.println(requestedDTMF);
             #endif
 
-            if (requestedDTMF.toInt() == pos) {
-                openTheDore();
-                requestedDTMF = "";
-                break;
-            }
+            openTheDore();
+            requestedDTMF = "";
 
-            if (requestedDTMF.length() == 3) {
-                requestedDTMF = "";
-            }
+//            if (requestedDTMF.toInt() == pos) {
+//                openTheDore();
+//                requestedDTMF = "";
+//                break;
+//            }
+//
+//            if (requestedDTMF.length() == 3) {
+//                requestedDTMF = "";
+//            }
         }
     }
 };
@@ -203,21 +222,20 @@ void resciveRFIDKey(byte *keys) {
         return;
     }
 
-    PICCType = rFid.PICC_GetType(rFid.uid.sak);
-
     #ifdef DEBUG_MODE
+        PICCType = rFid.PICC_GetType(rFid.uid.sak);
+
+
         Serial.print(F("Card type:"));
         Serial.println(PICCType);
-    #endif
 
-    if (PICCType != MFRC522::PICC_TYPE_MIFARE_MINI
+        if (PICCType != MFRC522::PICC_TYPE_MIFARE_MINI
             &&  PICCType != MFRC522::PICC_TYPE_MIFARE_1K
             &&  PICCType != MFRC522::PICC_TYPE_MIFARE_4K) {
-        #ifdef DEBUG_MODE
             Serial.println(F("This sample only works with MIFARE Classic cards."));
-        #endif
-        return;
-    }
+            return;
+        }
+    #endif
 
     status = rFid.PCD_Authenticate(MFRC522::PICC_CMD_MF_AUTH_KEY_A, 7, &key, &(rFid.uid));
 
@@ -263,7 +281,7 @@ void resciveRFIDKey(byte *keys) {
         #ifdef DEBUG_MODE
             Serial.println(F("Access granted"));
         #endif
-        openTheDore();
+        openTheDore(false);
     }
 
     rFid.PICC_HaltA();
@@ -481,7 +499,6 @@ void setup() {
 void loop() {
     keypad.getKey();
     resciveCall();
-    resciveSMS();
     resciveRFIDKey(dataBlock[0]);
 //    writeNewRFIDKey(dataBlock[0]);
 };
